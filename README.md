@@ -51,4 +51,4 @@ Está fora do escopo: qualquer interface gráfica ou web, integração com um ga
 
 ## Implementação
 
-A arquitetura, os padrões usados e as decisões de projeto estão em [ARQUITETURA.md](ARQUITETURA.md). Para compilar e rodar todos os testes de aceitação: `./rodar-testes.sh`.
+A arquitetura, os padrões usados e as decisões de projeto estão em [ARQUITETURA.md](ARQUITETURA.md). Para compilar e rodar todos os testes de aceitação: `./rodar-testes.sh` (ou executar a classe `Main`, que faz o mesmo, com cada arquivo de teste numa JVM separada para validar a persistência entre execuções).

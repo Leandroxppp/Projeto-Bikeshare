@@ -36,6 +36,16 @@ Pacote raiz: `br.ufal.ic.p2.bikeshare`. Para rodar tudo: `./rodar-testes.sh` (ou
 * **Bicicleta em manutenção** ocupa vaga física, mas não conta como disponível. Elétrica abaixo da bateria mínima também não.
 * **Aluguéis referenciam usuário e bicicleta por identificador**, então continuam consultáveis depois que o usuário é removido.
 
-## Persistência (atenção)
+## Persistência
 
-O enunciado fala em XML e, na frase seguinte, exige `java.io.Serializable`. As duas coisas foram atendidas juntas: o estado é serializado com `Serializable` e embalado, em base64, dentro de um `<estado>` num documento XML válido (`bikeshare_data.xml`). Se o arquivo estiver ilegível, ele é preservado como `.corrompido` e o sistema começa vazio, com aviso em `stderr`.
+O enunciado fala em XML e, na frase seguinte, exige `java.io.Serializable`. As duas coisas foram atendidas juntas. O arquivo `bikeshare_data.xml` tem duas partes:
+
+* `<resumo>`: usuários, estações, bicicletas e aluguéis em elementos XML legíveis (um elemento por entidade, com os atributos principais). Serve para inspeção; nunca é lido de volta.
+* `<estadoSerializado>`: o estado completo, gerado com a serialização nativa do Java (`Serializable`) e embalado em base64. É a fonte da verdade no carregamento.
+
+Se o arquivo estiver ilegível, ele é preservado como `.corrompido` e o sistema começa vazio, com aviso em `stderr`.
+
+## Como rodar os testes
+
+* `./rodar-testes.sh` compila e roda tudo. Cada `usN_1` roda numa JVM separada, logo após `usN`, para exercitar a persistência entre execuções.
+* `Main` faz o mesmo: roda cada arquivo de teste numa JVM própria e apaga o arquivo de dados apenas antes de cada `usN` (nunca antes de `usN_1`). Os dois caminhos validam a persistência da mesma forma.

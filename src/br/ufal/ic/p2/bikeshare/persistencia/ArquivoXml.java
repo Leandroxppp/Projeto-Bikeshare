@@ -2,6 +2,10 @@ package br.ufal.ic.p2.bikeshare.persistencia;
 
 import br.ufal.ic.p2.bikeshare.excecoes.Mensagens;
 import br.ufal.ic.p2.bikeshare.excecoes.PersistenciaException;
+import br.ufal.ic.p2.bikeshare.modelo.aluguel.Aluguel;
+import br.ufal.ic.p2.bikeshare.modelo.bicicleta.Bicicleta;
+import br.ufal.ic.p2.bikeshare.modelo.estacao.Estacao;
+import br.ufal.ic.p2.bikeshare.modelo.usuario.Usuario;
 import br.ufal.ic.p2.bikeshare.repositorio.BaseDados;
 
 import org.w3c.dom.Document;
@@ -24,13 +28,18 @@ import java.util.Base64;
 import java.util.Optional;
 
 /**
- * Grava o estado num arquivo XML. O conteúdo do estado é gerado pela serialização nativa do Java
- * ({@link java.io.Serializable}, exigida pelo enunciado) e embalado em base64 dentro do
- * elemento {@code <estado>}, de modo que o arquivo é um XML válido sem parser manual.
+ * Grava o estado num arquivo XML com duas partes:
+ * <ul>
+ *   <li>{@code <resumo>}: usuários, estações, bicicletas e aluguéis em elementos XML legíveis
+ *       (somente para consulta/inspeção; nunca é lido de volta);</li>
+ *   <li>{@code <estadoSerializado>}: o estado completo, gerado pela serialização nativa do Java
+ *       ({@link java.io.Serializable}, exigida pelo enunciado) e embalado em base64. É a fonte
+ *       da verdade na hora de carregar.</li>
+ * </ul>
  */
 public final class ArquivoXml {
     private static final String RAIZ = "bikeshare";
-    private static final String ELEMENTO_ESTADO = "estado";
+    private static final String ELEMENTO_ESTADO = "estadoSerializado";
 
     private final Path arquivo;
 
@@ -42,7 +51,8 @@ public final class ArquivoXml {
         try {
             Document doc = novoDocumentBuilder().newDocument();
             Element raiz = doc.createElement(RAIZ);
-            raiz.setAttribute("versao", "1");
+            raiz.setAttribute("versao", "2");
+            raiz.appendChild(montarResumo(doc, base));
             Element estado = doc.createElement(ELEMENTO_ESTADO);
             estado.setAttribute("codificacao", "java.io.Serializable+base64");
             estado.setTextContent(Base64.getEncoder().encodeToString(Serializador.serializar(base)));
@@ -58,6 +68,60 @@ public final class ArquivoXml {
         } catch (Exception e) {
             throw new PersistenciaException(Mensagens.FALHA_AO_GRAVAR);
         }
+    }
+
+    /** Visão legível do estado: um elemento por entidade, com os atributos principais. */
+    private static Element montarResumo(Document doc, BaseDados base) {
+        Element resumo = doc.createElement("resumo");
+
+        Element usuarios = doc.createElement("usuarios");
+        for (Usuario u : base.usuarios().listar()) {
+            Element e = doc.createElement("usuario");
+            e.setAttribute("id", u.getId());
+            e.setAttribute("nome", u.getNome());
+            e.setAttribute("email", u.getEmail());
+            e.setAttribute("tipo", u.getTipo());
+            e.setAttribute("estado", u.getEstado().name());
+            usuarios.appendChild(e);
+        }
+        resumo.appendChild(usuarios);
+
+        Element estacoes = doc.createElement("estacoes");
+        for (Estacao s : base.estacoes().listar()) {
+            Element e = doc.createElement("estacao");
+            e.setAttribute("id", s.getId());
+            e.setAttribute("nome", s.getNome());
+            e.setAttribute("endereco", s.getEndereco());
+            e.setAttribute("capacidade", String.valueOf(s.getCapacidade()));
+            e.setAttribute("vagasLivres", String.valueOf(s.getVagasLivres()));
+            estacoes.appendChild(e);
+        }
+        resumo.appendChild(estacoes);
+
+        Element bicicletas = doc.createElement("bicicletas");
+        for (Bicicleta b : base.bicicletas().listar()) {
+            Element e = doc.createElement("bicicleta");
+            e.setAttribute("id", b.getId());
+            e.setAttribute("tipo", b.getTipo());
+            e.setAttribute("estado", b.getEstado().name());
+            bicicletas.appendChild(e);
+        }
+        resumo.appendChild(bicicletas);
+
+        Element alugueis = doc.createElement("alugueis");
+        for (Aluguel a : base.alugueis().listar()) {
+            Element e = doc.createElement("aluguel");
+            e.setAttribute("id", a.getId());
+            e.setAttribute("usuario", a.getUsuarioId());
+            e.setAttribute("bicicleta", a.getBicicletaId());
+            e.setAttribute("estacaoOrigem", a.getEstacaoOrigemId());
+            e.setAttribute("inicio", String.valueOf(a.getInicio()));
+            e.setAttribute("estado", a.getEstado().name());
+            e.setAttribute("valorCobrado", String.valueOf(a.getValorCobrado()));
+            alugueis.appendChild(e);
+        }
+        resumo.appendChild(alugueis);
+        return resumo;
     }
 
     /**
