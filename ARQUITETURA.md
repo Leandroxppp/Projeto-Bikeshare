@@ -52,4 +52,4 @@ Na `Facade` estas operações seguem como no stub original (`UnsupportedOperatio
 ## Como rodar os testes
 
 * `./rodar-testes.sh` / `.\rodar-testes.ps1` compilam e rodam US1 a US9 (padrão desta entrega). Passando `16`, rodam até a US16. Cada `usN_1` roda numa JVM própria, logo após `usN`, para exercitar a persistência entre execuções.
-* A classe `Main` do monitor roda todos os arquivos numa só JVM; nesta entrega, US10 a US16 falham por serem do Milestone 2.
+* A classe `Main` do monitor roda todos os arquivos numa só JVM; nesta entrega, a US10 e as US12 a US16 aparecem como erro por serem do Milestone 2 (a US11 já passa).
