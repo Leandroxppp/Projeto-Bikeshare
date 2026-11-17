@@ -165,7 +165,7 @@ A classe `src/Main.java` chama o EasyAccept para todos os arquivos `tests/us*.tx
 | `records are not supported` | JDK anterior ao 16 | Atualizar para JDK 17+ |
 | Falha só em `usN_1.txt` | O arquivo de persistência foi apagado entre `usN` e `usN_1` | Rodar `usN` e `usN_1` em sequência, sem apagar `bikeshare_data.xml` |
 | Caracteres estranhos nas mensagens | Codificação do terminal | Compilar com `-encoding UTF-8` e rodar com `-Dfile.encoding=UTF-8` |
-| Mudei o `bikeshare.properties` e nada mudou | Comando executado fora da raiz do projeto | Rodar da raiz (ou usar o script) |
+| Alterações em `bikeshare.properties` não surtem efeito | Comando executado fora da raiz do projeto | Rodar da raiz (ou usar o script) |
 | `ConfiguracaoException` ao iniciar | Valor inválido em `bikeshare.properties` | Corrigir ou remover a chave |
 
 ---
@@ -188,21 +188,6 @@ Os parâmetros de tarifação e limites ficam em `bikeshare.properties` (valor p
 
 ---
 
-## Como gerar o ZIP de entrega
-
-O enunciado aceita a entrega **somente** pelo Google Classroom, em `.zip` (não vale `.rar`, `.7z` ou pasta solta) e/ou pelo link do repositório no GitHub. O `.zip` deve conter o repositório completo (`src/`, `tests/`, `lib/easyaccept.jar`), **sem** `.git`, `out/`, `target/` ou outros artefatos de build, e os testes fornecidos não podem ser alterados.
-
-A forma mais segura é gerar o ZIP a partir de um clone limpo, só com os arquivos versionados:
-
-```bash
-git clone <url-do-repositorio> entrega && cd entrega
-git archive --format=zip --prefix=Projeto-Bikeshare/ -o ../Projeto-Bikeshare.zip HEAD
-```
-
-Antes de enviar, confira que ele roda sozinho: descompacte em uma pasta vazia e execute `./rodar-testes.sh` (ou `.\rodar-testes.ps1`).
-
----
-
 ## Estrutura do projeto
 
 ```text
@@ -213,7 +198,7 @@ Antes de enviar, confira que ele roda sozinho: descompacte em uma pasta vazia e 
 ├── rodar-testes.sh / .ps1    # compila e roda a suíte
 ├── lib/easyaccept.jar
 ├── tests/                    # usN.txt e usN_1.txt (EasyAccept)
-├── relatorio/                # reservada ao relatório final (não solicitado em 2026.2)
+├── relatorio/                # reservada ao relatório final
 └── src/
     ├── Main.java             # roda todos os testes numa só JVM
     └── br/ufal/ic/p2/bikeshare/
