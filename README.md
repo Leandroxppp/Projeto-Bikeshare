@@ -46,6 +46,185 @@ Está fora do escopo: qualquer interface gráfica ou web, integração com um ga
 
 ---
 
-## Implementação
+---
 
-Estado desta entrega: **Milestone 1 (US1 a US9)**. A arquitetura, os padrões usados e as decisões de projeto estão em [ARQUITETURA.md](ARQUITETURA.md). Para compilar e rodar os testes de aceitação do Milestone 1: `./rodar-testes.sh` (Linux/macOS) ou `.\rodar-testes.ps1` (Windows PowerShell). Os parâmetros de tarifação ficam em `bikeshare.properties`.
+## Estado da entrega
+
+**Milestone 1 (US1 a US9)** concluído: 834 verificações dos testes de aceitação passando, 0 falhas.
+
+| Milestone | User Stories | Situação |
+|---|---|---|
+| 1 | US1 a US9 (usuários, estações, bicicletas, aluguel, tarifa, pagamento, persistência) | Implementado e testado |
+| 2 | US10 a US16 (histórico, criação de planos, penalidades, manutenção, faturamento, undo/redo) | Pendente: os métodos correspondentes da `Facade` ainda lançam `UnsupportedOperationException` |
+
+Por isso, rodar US10 a US16 hoje **falha de propósito**. Isso é esperado nesta entrega.
+
+---
+
+## Como executar
+
+### Requisitos
+
+- **JDK 17 ou superior** (precisa do compilador `javac`, não só do JRE). O projeto usa `record`, então Java 11 não compila. Testado com JDK 21.
+- Nenhuma outra dependência: o `easyaccept.jar` já está em `lib/`.
+
+Confira com:
+
+```bash
+java -version
+javac -version
+```
+
+> **Rode sempre a partir da pasta raiz do projeto** (a que contém `src/`, `tests/` e `bikeshare.properties`). O sistema procura `bikeshare.properties` e grava `bikeshare_data.xml` no diretório atual. Em outra pasta, os parâmetros do `.properties` são ignorados (valem os padrões) e a persistência vai parar em outro lugar. Os scripts já entram na pasta certa sozinhos.
+
+### Forma recomendada: script
+
+Linux / macOS:
+
+```bash
+chmod +x rodar-testes.sh   # só na primeira vez
+./rodar-testes.sh          # US1 a US9 (Milestone 1)
+./rodar-testes.sh 16       # US1 a US16 (Milestone 2, quando existir)
+```
+
+Windows (PowerShell):
+
+```powershell
+.\rodar-testes.ps1         # US1 a US9
+.\rodar-testes.ps1 16      # US1 a US16
+```
+
+Se o PowerShell bloquear o script, libere só para a sessão atual:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+```
+
+O script:
+
+1. apaga `out/` e compila todos os `.java` de `src/`;
+2. para cada US, roda `usN.txt` e, em seguida, `usN_1.txt` **em outra JVM**, sem apagar o arquivo de persistência entre os dois;
+3. apaga `bikeshare_data.xml` antes de cada `usN.txt`, para começar de um estado limpo;
+4. imprime `ok` ou `FALHA` por arquivo e o total ao final;
+5. remove os arquivos temporários.
+
+### Saída esperada (US1 a US9)
+
+```text
+ok   Test file tests/us1.txt: 71 tests OK
+ok   Test file tests/us1_1.txt: 14 tests OK
+ok   Test file tests/us2.txt: 46 tests OK
+ok   Test file tests/us3.txt: 129 tests OK
+ok   Test file tests/us3_1.txt: 17 tests OK
+ok   Test file tests/us4.txt: 37 tests OK
+ok   Test file tests/us4_1.txt: 15 tests OK
+ok   Test file tests/us5.txt: 42 tests OK
+ok   Test file tests/us5_1.txt: 11 tests OK
+ok   Test file tests/us6.txt: 74 tests OK
+ok   Test file tests/us6_1.txt: 14 tests OK
+ok   Test file tests/us7.txt: 39 tests OK
+ok   Test file tests/us8.txt: 106 tests OK
+ok   Test file tests/us8_1.txt: 17 tests OK
+ok   Test file tests/us9.txt: 180 tests OK
+ok   Test file tests/us9_1.txt: 22 tests OK
+
+US1 a US9: 834 testes, todos passaram.
+```
+
+### Execução manual
+
+Linux / macOS:
+
+```bash
+rm -rf out && mkdir out
+javac -encoding UTF-8 -d out -cp lib/easyaccept.jar $(find src -name '*.java')
+
+# um arquivo de teste
+java -cp "out:lib/easyaccept.jar" easyaccept.EasyAccept br.ufal.ic.p2.bikeshare.Facade tests/us1.txt
+```
+
+Windows (PowerShell):
+
+```powershell
+Remove-Item -Recurse -Force out -ErrorAction SilentlyContinue
+New-Item -ItemType Directory out | Out-Null
+javac -encoding UTF-8 -d out -cp lib/easyaccept.jar (Get-ChildItem -Recurse src -Filter *.java | ForEach-Object { $_.FullName })
+
+java -cp "out;lib/easyaccept.jar" easyaccept.EasyAccept br.ufal.ic.p2.bikeshare.Facade tests/us1.txt
+```
+
+### Rodando pela IDE
+
+A classe `src/Main.java` chama o EasyAccept para todos os arquivos `tests/us*.txt`, em uma única JVM. Nesta entrega, as US10 a US16 aparecem como falha, por serem do Milestone 2. Para validar o Milestone 1, prefira o script.
+
+### Problemas comuns
+
+| Sintoma | Causa provável | Solução |
+|---|---|---|
+| `javac: command not found` | Só o JRE está instalado | Instalar um JDK 17+ |
+| `records are not supported` | JDK anterior ao 16 | Atualizar para JDK 17+ |
+| Falha só em `usN_1.txt` | O arquivo de persistência foi apagado entre `usN` e `usN_1` | Rodar `usN` e `usN_1` em sequência, sem apagar `bikeshare_data.xml` |
+| Caracteres estranhos nas mensagens | Codificação do terminal | Compilar com `-encoding UTF-8` e rodar com `-Dfile.encoding=UTF-8` |
+| Mudei o `bikeshare.properties` e nada mudou | Comando executado fora da raiz do projeto | Rodar da raiz (ou usar o script) |
+| `ConfiguracaoException` ao iniciar | Valor inválido em `bikeshare.properties` | Corrigir ou remover a chave |
+
+---
+
+## Persistência nos testes
+
+Os arquivos `usN_1.txt` verificam que o estado criado em `usN.txt` sobreviveu ao encerramento da JVM. Por isso:
+
+- `usN_1.txt` deve rodar **logo depois** de `usN.txt`, em **outra JVM**;
+- o arquivo `bikeshare_data.xml`, criado na pasta onde o comando é executado, **não pode ser apagado** entre os dois;
+- antes de começar outra US, o arquivo pode ser removido para garantir estado limpo (o script já faz isso).
+
+O arquivo está no `.gitignore`. Se ficar ilegível, é preservado como `bikeshare_data.xml.corrompido` e o sistema começa vazio, com aviso em `stderr`.
+
+---
+
+## Configuração
+
+Os parâmetros de tarifação e limites ficam em `bikeshare.properties` (valor por minuto, franquia do assinante, adicional da elétrica, carência, tempo máximo, penalidade, saldo mínimo). Podem ser alterados **sem recompilar**. Se uma chave for removida, vale o padrão do enunciado.
+
+---
+
+## Como gerar o ZIP de entrega
+
+O enunciado aceita a entrega **somente** pelo Google Classroom, em `.zip` (não vale `.rar`, `.7z` ou pasta solta) e/ou pelo link do repositório no GitHub. O `.zip` deve conter o repositório completo (`src/`, `tests/`, `lib/easyaccept.jar`), **sem** `.git`, `out/`, `target/` ou outros artefatos de build, e os testes fornecidos não podem ser alterados.
+
+A forma mais segura é gerar o ZIP a partir de um clone limpo, só com os arquivos versionados:
+
+```bash
+git clone <url-do-repositorio> entrega && cd entrega
+git archive --format=zip --prefix=Projeto-Bikeshare/ -o ../Projeto-Bikeshare.zip HEAD
+```
+
+Antes de enviar, confira que ele roda sozinho: descompacte em uma pasta vazia e execute `./rodar-testes.sh` (ou `.\rodar-testes.ps1`).
+
+---
+
+## Estrutura do projeto
+
+```text
+.
+├── README.md
+├── ARQUITETURA.md            # padrões de projeto e decisões
+├── bikeshare.properties      # parâmetros de tarifação e limites
+├── rodar-testes.sh / .ps1    # compila e roda a suíte
+├── lib/easyaccept.jar
+├── tests/                    # usN.txt e usN_1.txt (EasyAccept)
+├── relatorio/                # reservada ao relatório final (não solicitado em 2026.2)
+└── src/
+    ├── Main.java             # roda todos os testes numa só JVM
+    └── br/ufal/ic/p2/bikeshare/
+        ├── Facade.java       # único ponto de entrada; só encaminha
+        ├── servico/          # um serviço por assunto
+        ├── modelo/           # regras do domínio
+        ├── repositorio/      # coleções e estado do sistema
+        ├── persistencia/     # serialização e arquivo XML
+        ├── excecoes/         # hierarquia de erros e catálogo de mensagens
+        ├── config/           # leitura de bikeshare.properties
+        └── util/
+```
+
+Arquitetura, padrões usados (State, Strategy, Template Method, Factory, composição) e decisões de projeto estão em [ARQUITETURA.md](ARQUITETURA.md).
