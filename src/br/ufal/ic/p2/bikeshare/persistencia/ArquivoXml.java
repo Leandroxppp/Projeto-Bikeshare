@@ -5,11 +5,14 @@ import br.ufal.ic.p2.bikeshare.excecoes.PersistenciaException;
 import br.ufal.ic.p2.bikeshare.modelo.aluguel.Aluguel;
 import br.ufal.ic.p2.bikeshare.modelo.bicicleta.Bicicleta;
 import br.ufal.ic.p2.bikeshare.modelo.estacao.Estacao;
+import br.ufal.ic.p2.bikeshare.modelo.penalidade.Penalidade;
 import br.ufal.ic.p2.bikeshare.modelo.usuario.Usuario;
 import br.ufal.ic.p2.bikeshare.repositorio.BaseDados;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.SAXParseException;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
@@ -82,6 +85,13 @@ public final class ArquivoXml {
             e.setAttribute("email", u.getEmail());
             e.setAttribute("tipo", u.getTipo());
             e.setAttribute("estado", u.getEstado().name());
+            for (Penalidade p : u.getPenalidades()) {
+                Element pen = doc.createElement("penalidade");
+                pen.setAttribute("tipo", p.getTipo());
+                pen.setAttribute("valor", p.getValor().toPlainString());
+                pen.setAttribute("motivo", p.getMotivo());
+                e.appendChild(pen);
+            }
             usuarios.appendChild(e);
         }
         resumo.appendChild(usuarios);
@@ -159,6 +169,23 @@ public final class ArquivoXml {
         DocumentBuilderFactory fabrica = DocumentBuilderFactory.newInstance();
         fabrica.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
         fabrica.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-        return fabrica.newDocumentBuilder();
+        DocumentBuilder construtor = fabrica.newDocumentBuilder();
+        construtor.setErrorHandler(new ErrorHandler() { // sem ruído no console; o erro sobe como exceção
+            @Override
+            public void warning(SAXParseException e) {
+                // avisos de parser não interessam
+            }
+
+            @Override
+            public void error(SAXParseException e) throws SAXParseException {
+                throw e;
+            }
+
+            @Override
+            public void fatalError(SAXParseException e) throws SAXParseException {
+                throw e;
+            }
+        });
+        return construtor;
     }
 }

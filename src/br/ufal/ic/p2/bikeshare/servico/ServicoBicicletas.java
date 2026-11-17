@@ -10,7 +10,7 @@ import br.ufal.ic.p2.bikeshare.repositorio.BaseDados;
 import br.ufal.ic.p2.bikeshare.repositorio.ContextoSistema;
 import br.ufal.ic.p2.bikeshare.util.Entrada;
 
-/** Gestão de bicicletas (US6), estado (US7) e manutenção (US14). */
+/** Gestão de bicicletas (US6) e consulta de estado (US7). */
 public final class ServicoBicicletas {
     private final ContextoSistema contexto;
 
@@ -41,7 +41,7 @@ public final class ServicoBicicletas {
         if (!estacao.contem(bicicleta)) {
             throw new OperacaoNaoPermitidaException(Mensagens.BICICLETA_NAO_NESTA_ESTACAO);
         }
-        bicicleta.exigirRemovivel();
+        bicicleta.exigirDisponivel();
         estacao.liberar(bicicleta);
         base.bicicletas().remover(bicicleta);
     }
@@ -57,15 +57,5 @@ public final class ServicoBicicletas {
 
     public String getEstado(String bicicletaId) {
         return contexto.base().bicicletas().exigir(bicicletaId).getEstado().descricao();
-    }
-
-    public void lancarDefeito(String bicicletaId, String descricao) {
-        Bicicleta bicicleta = contexto.base().bicicletas().exigir(bicicletaId);
-        Entrada.obrigatorio(descricao, Mensagens.DESCRICAO_NULA);
-        bicicleta.lancarDefeito();
-    }
-
-    public void concluirManutencao(String bicicletaId) {
-        contexto.base().bicicletas().exigir(bicicletaId).concluirManutencao();
     }
 }

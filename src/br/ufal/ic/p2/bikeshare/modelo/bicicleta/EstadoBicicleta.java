@@ -4,8 +4,9 @@ import br.ufal.ic.p2.bikeshare.excecoes.Mensagens;
 import br.ufal.ic.p2.bikeshare.excecoes.OperacaoNaoPermitidaException;
 
 /**
- * Padrão State: cada estado conhece as transições que aceita e recusa as demais com a mensagem
- * apropriada. Removida não é estado: a bicicleta simplesmente deixa de existir.
+ * Padrão State: cada estado declara explicitamente o que aceita e o que recusa (o compilador
+ * obriga cada constante a tratar todas as transições). Removida não é estado: a bicicleta
+ * simplesmente deixa de existir.
  */
 public enum EstadoBicicleta {
     DISPONIVEL("disponivel") {
@@ -15,16 +16,26 @@ public enum EstadoBicicleta {
         }
 
         @Override
-        public EstadoBicicleta aoLancarDefeito() {
-            return EM_MANUTENCAO;
+        public EstadoBicicleta aoDevolver() {
+            throw indisponivel();
         }
 
         @Override
-        public void exigirRemovivel() {
-            // bicicleta disponível pode ser removida
+        public EstadoBicicleta aoDevolverComExpiracao() {
+            throw indisponivel();
+        }
+
+        @Override
+        public void exigirDisponivel() {
+            // é exatamente o estado exigido
         }
     },
     EM_USO("emUso") {
+        @Override
+        public EstadoBicicleta aoRetirar() {
+            throw indisponivel();
+        }
+
         @Override
         public EstadoBicicleta aoDevolver() {
             return DISPONIVEL;
@@ -36,19 +47,29 @@ public enum EstadoBicicleta {
         }
 
         @Override
-        public EstadoBicicleta aoLancarDefeito() {
-            throw new OperacaoNaoPermitidaException(Mensagens.DEFEITO_EM_BICICLETA_EM_USO);
+        public void exigirDisponivel() {
+            throw indisponivel();
         }
     },
     EM_MANUTENCAO("emManutencao") {
         @Override
-        public EstadoBicicleta aoLancarDefeito() {
-            throw new OperacaoNaoPermitidaException(Mensagens.BICICLETA_JA_EM_MANUTENCAO);
+        public EstadoBicicleta aoRetirar() {
+            throw indisponivel();
         }
 
         @Override
-        public EstadoBicicleta aoConcluirManutencao() {
-            return DISPONIVEL;
+        public EstadoBicicleta aoDevolver() {
+            throw indisponivel();
+        }
+
+        @Override
+        public EstadoBicicleta aoDevolverComExpiracao() {
+            throw indisponivel();
+        }
+
+        @Override
+        public void exigirDisponivel() {
+            throw indisponivel();
         }
     };
 
@@ -62,27 +83,19 @@ public enum EstadoBicicleta {
         return descricao;
     }
 
-    public EstadoBicicleta aoRetirar() {
-        throw new OperacaoNaoPermitidaException(Mensagens.BICICLETA_INDISPONIVEL);
-    }
+    /** Estado seguinte quando um usuário retira a bicicleta. */
+    public abstract EstadoBicicleta aoRetirar();
 
-    public EstadoBicicleta aoDevolver() {
-        throw new OperacaoNaoPermitidaException(Mensagens.BICICLETA_INDISPONIVEL);
-    }
+    /** Estado seguinte numa devolução normal. */
+    public abstract EstadoBicicleta aoDevolver();
 
-    public EstadoBicicleta aoDevolverComExpiracao() {
-        throw new OperacaoNaoPermitidaException(Mensagens.BICICLETA_INDISPONIVEL);
-    }
+    /** Estado seguinte numa devolução fora do tempo máximo (a bicicleta vai para manutenção). */
+    public abstract EstadoBicicleta aoDevolverComExpiracao();
 
-    public EstadoBicicleta aoLancarDefeito() {
-        throw new OperacaoNaoPermitidaException(Mensagens.BICICLETA_INDISPONIVEL);
-    }
+    /** Falha se a bicicleta não puder ser retirada nem removida neste estado. */
+    public abstract void exigirDisponivel();
 
-    public EstadoBicicleta aoConcluirManutencao() {
-        throw new OperacaoNaoPermitidaException(Mensagens.BICICLETA_NAO_EM_MANUTENCAO);
-    }
-
-    public void exigirRemovivel() {
-        throw new OperacaoNaoPermitidaException(Mensagens.BICICLETA_INDISPONIVEL);
+    private static OperacaoNaoPermitidaException indisponivel() {
+        return new OperacaoNaoPermitidaException(Mensagens.BICICLETA_INDISPONIVEL);
     }
 }

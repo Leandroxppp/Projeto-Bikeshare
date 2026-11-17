@@ -1,7 +1,6 @@
 package br.ufal.ic.p2.bikeshare.servico;
 
 import br.ufal.ic.p2.bikeshare.config.Parametros;
-import br.ufal.ic.p2.bikeshare.excecoes.AtributoException;
 import br.ufal.ic.p2.bikeshare.excecoes.Mensagens;
 import br.ufal.ic.p2.bikeshare.excecoes.OperacaoNaoPermitidaException;
 import br.ufal.ic.p2.bikeshare.modelo.aluguel.Aluguel;
@@ -16,9 +15,8 @@ import br.ufal.ic.p2.bikeshare.util.Dinheiro;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 
-/** Retirada (US8), devolução com tarifação (US9, US11, US12) e histórico (US10). */
+/** Retirada (US8) e devolução com tarifação (US9); consulta de atributos do aluguel. */
 public final class ServicoAlugueis {
     private final ContextoSistema contexto;
 
@@ -113,23 +111,5 @@ public final class ServicoAlugueis {
 
     public String consultar(String aluguelId, String atributo) {
         return contexto.base().alugueis().exigir(aluguelId).consultar(atributo);
-    }
-
-    /** Histórico do usuário: "quantidade" (padrão) ou "totalGasto". */
-    public String historico(String usuarioId, String atributo) {
-        BaseDados base = contexto.base();
-        Usuario usuario = base.usuarios().exigir(usuarioId);
-        List<Aluguel> alugueis = base.alugueis().doUsuario(usuario.getId());
-        if (atributo == null || "quantidade".equals(atributo)) {
-            return String.valueOf(alugueis.size());
-        }
-        if ("totalGasto".equals(atributo)) {
-            BigDecimal total = Dinheiro.ZERO;
-            for (Aluguel a : alugueis) {
-                total = total.add(a.getValorCobrado());
-            }
-            return Dinheiro.formatar(total);
-        }
-        throw new AtributoException(Mensagens.ATRIBUTO_NAO_EXISTE);
     }
 }

@@ -7,24 +7,24 @@ import br.ufal.ic.p2.bikeshare.excecoes.Mensagens;
 import br.ufal.ic.p2.bikeshare.excecoes.OperacaoNaoPermitidaException;
 import br.ufal.ic.p2.bikeshare.modelo.Identificavel;
 import br.ufal.ic.p2.bikeshare.modelo.pagamento.AtributoPagamento;
-import br.ufal.ic.p2.bikeshare.modelo.pagamento.FabricaMetodosPagamento;
-import br.ufal.ic.p2.bikeshare.modelo.pagamento.MetodoPagamento;
-import br.ufal.ic.p2.bikeshare.modelo.pagamento.SaldoPreCarregado;
-import br.ufal.ic.p2.bikeshare.modelo.pagamento.SemMetodoPagamento;
+import br.ufal.ic.p2.bikeshare.modelo.pagamento.ContaPagamento;
+import br.ufal.ic.p2.bikeshare.modelo.penalidade.Pendencias;
 import br.ufal.ic.p2.bikeshare.modelo.penalidade.Penalidade;
+import br.ufal.ic.p2.bikeshare.modelo.plano.Assinatura;
 import br.ufal.ic.p2.bikeshare.modelo.plano.Plano;
 import br.ufal.ic.p2.bikeshare.util.Dinheiro;
 import br.ufal.ic.p2.bikeshare.util.Entrada;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
- * Usuário do sistema. Pessoa física e jurídica compartilham tudo (plano, pagamento, aluguel,
- * penalidades) e diferem apenas nos dados de identificação, tratados por cada subclasse.
+ * Usuário do sistema: identificação, aluguel em curso e consulta de atributos. Plano, pagamento
+ * e pendências vivem em objetos próprios. Pessoa física e jurídica diferem só nos dados de
+ * identificação, tratados por cada subclasse.
  */
 public abstract class Usuario implements Identificavel, Serializable {
     private static final long serialVersionUID = 1L;
@@ -34,19 +34,17 @@ public abstract class Usuario implements Identificavel, Serializable {
     private String nome;
     private String email;
     private String senha;
-    private Plano plano;
-    private BigDecimal mensalidade; // nulo enquanto o plano não tem mensalidade
-    private MetodoPagamento metodoPagamento = new SemMetodoPagamento();
-    private final SaldoPreCarregado carteira = new SaldoPreCarregado();
     private String aluguelAtivoId;
-    private final ArrayList<Penalidade> penalidades = new ArrayList<>();
+    private final Assinatura assinatura;
+    private final ContaPagamento conta = new ContaPagamento();
+    private final Pendencias pendencias = new Pendencias();
 
     protected Usuario(String id, String nome, String email, String senha, Plano planoInicial) {
         this.id = id;
         setNome(nome);
         setEmail(email);
         setSenha(senha);
-        this.plano = planoInicial;
+        this.assinatura = new Assinatura(planoInicial);
     }
 
     // ---------------------------------------------------------------- validação
@@ -88,42 +86,38 @@ public abstract class Usuario implements Identificavel, Serializable {
 
     // ---------------------------------------------------------------- plano
 
-    /** Adesão inicial, com a mensalidade contratada (nula para planos sem mensalidade). */
-    public final void contratarPlano(Plano novoPlano, BigDecimal mensalidadeContratada) {
-        this.plano = novoPlano;
-        this.mensalidade = mensalidadeContratada == null ? null : Dinheiro.arredondar(mensalidadeContratada);
+    public final void contratarPlano(Plano plano, BigDecimal mensalidadeContratada) {
+        assinatura.contratar(plano, mensalidadeContratada);
     }
 
-    /** Troca de plano; repetir o plano atual preserva a mensalidade já contratada. */
     public final void trocarPlano(Plano novoPlano) {
-        if (!novoPlano.equals(plano)) {
-            contratarPlano(novoPlano, novoPlano.getMensalidadePadrao().orElse(null));
-        }
+        assinatura.trocarPara(novoPlano);
     }
 
     public final BigDecimal calcularTarifa(long minutos) {
-        return plano.calcularTarifa(minutos);
+        return assinatura.calcularTarifa(minutos);
     }
 
     // ---------------------------------------------------------------- pagamento
 
     public final void alterarMetodoPagamento(String tipo, String... parametros) {
-        this.metodoPagamento = FabricaMetodosPagamento.criar(tipo, carteira, parametros);
+        conta.alterarMetodo(tipo, parametros);
     }
 
     public final boolean aceitaRecarga() {
-        return metodoPagamento.aceitaRecarga();
+        return conta.aceitaRecarga();
     }
 
     public final void recarregar(BigDecimal valor) {
-        if (!aceitaRecarga()) {
-            throw new AtributoException(Mensagens.USUARIO_NAO_USA_SALDO);
-        }
-        carteira.creditar(valor);
+        conta.recarregar(valor);
     }
 
     public final void cobrar(BigDecimal valor) {
-        metodoPagamento.cobrar(valor);
+        conta.cobrar(valor);
+    }
+
+    public final void autorizarRetirada(Parametros parametros) {
+        conta.autorizarRetirada(parametros);
     }
 
     // ---------------------------------------------------------------- aluguel
@@ -150,10 +144,6 @@ public abstract class Usuario implements Identificavel, Serializable {
         }
     }
 
-    public final void autorizarRetirada(Parametros parametros) {
-        metodoPagamento.autorizarRetirada(parametros);
-    }
-
     public final void exigirSemAluguelAtivo() {
         if (temAluguelAtivo()) {
             throw new OperacaoNaoPermitidaException(Mensagens.USUARIO_COM_ALUGUEL);
@@ -163,19 +153,15 @@ public abstract class Usuario implements Identificavel, Serializable {
     // ---------------------------------------------------------------- penalidades
 
     public final void adicionarPenalidade(Penalidade penalidade) {
-        penalidades.add(penalidade);
+        pendencias.adicionar(penalidade);
     }
 
-    public final BigDecimal getTotalPendencias() {
-        BigDecimal total = Dinheiro.ZERO;
-        for (Penalidade p : penalidades) {
-            total = total.add(p.getValor());
-        }
-        return Dinheiro.arredondar(total);
+    public final List<Penalidade> getPenalidades() {
+        return pendencias.listar();
     }
 
     public final boolean isInadimplente() {
-        return getTotalPendencias().signum() > 0;
+        return pendencias.existem();
     }
 
     public final EstadoUsuario getEstado() {
@@ -205,36 +191,22 @@ public abstract class Usuario implements Identificavel, Serializable {
             case "estado":
                 return getEstado().descricao();
             case "plano":
-                return plano.getNome();
+                return assinatura.getNomePlano();
             case "mensalidade":
-                return consultarMensalidade();
+                return assinatura.getMensalidade().map(Dinheiro::formatar)
+                        .orElseThrow(() -> new AtributoException(Mensagens.PLANO_SEM_MENSALIDADE));
             case "metodoPagamento":
-                return metodoPagamento.getNome();
+                return conta.getNomeDoMetodo();
             case "aluguelAtivo":
                 return aluguelAtivoId == null ? "nenhum" : aluguelAtivoId;
             case "totalPendencias":
-                return Dinheiro.formatar(getTotalPendencias());
+                return Dinheiro.formatar(pendencias.getTotal());
             default:
                 Optional<AtributoPagamento> pagamento = AtributoPagamento.da(atributo);
                 if (pagamento.isPresent()) {
-                    return consultarPagamento(pagamento.get());
+                    return conta.consultar(pagamento.get());
                 }
                 return consultarAtributoEspecifico(atributo);
         }
-    }
-
-    private String consultarMensalidade() {
-        if (mensalidade == null) {
-            throw new AtributoException(Mensagens.PLANO_SEM_MENSALIDADE);
-        }
-        return Dinheiro.formatar(mensalidade);
-    }
-
-    private String consultarPagamento(AtributoPagamento atributo) {
-        String valor = metodoPagamento.getAtributos().get(atributo.chave());
-        if (valor == null) {
-            throw new AtributoException(atributo.mensagemQuandoNaoUsa());
-        }
-        return valor;
     }
 }

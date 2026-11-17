@@ -46,9 +46,6 @@ Está fora do escopo: qualquer interface gráfica ou web, integração com um ga
 
 ---
 
-
----
-
 ## Implementação
 
-A arquitetura, os padrões usados e as decisões de projeto estão em [ARQUITETURA.md](ARQUITETURA.md). Para compilar e rodar todos os testes de aceitação: `./rodar-testes.sh` (ou executar a classe `Main`, que faz o mesmo, com cada arquivo de teste numa JVM separada para validar a persistência entre execuções).
+Estado desta entrega: **Milestone 1 (US1 a US9)**. A arquitetura, os padrões usados e as decisões de projeto estão em [ARQUITETURA.md](ARQUITETURA.md). Para compilar e rodar os testes de aceitação do Milestone 1: `./rodar-testes.sh` (Linux/macOS) ou `.\rodar-testes.ps1` (Windows PowerShell). Os parâmetros de tarifação ficam em `bikeshare.properties`.

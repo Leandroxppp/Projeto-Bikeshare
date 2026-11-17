@@ -10,7 +10,6 @@ import br.ufal.ic.p2.bikeshare.util.Dinheiro;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -98,16 +97,6 @@ public final class Aluguel implements Identificavel, Serializable {
         this.fim = momento;
         this.estacaoDestinoId = estacaoDestino;
         this.valorCobrado = Dinheiro.arredondar(valor);
-    }
-
-    /** Faturamento é reconhecido na devolução e só para corridas finalizadas. */
-    public BigDecimal valorFaturadoEntre(LocalDate inicial, LocalDate fimDoPeriodo) {
-        if (estado != EstadoAluguel.FINALIZADO) {
-            return Dinheiro.ZERO;
-        }
-        LocalDate dia = fim.toLocalDate();
-        boolean dentro = !dia.isBefore(inicial) && !dia.isAfter(fimDoPeriodo);
-        return dentro ? valorCobrado : Dinheiro.ZERO;
     }
 
     public String consultar(String atributo) {

@@ -31,17 +31,9 @@ public final class Mensagens {
     // ---- plano ----
     public static final String PLANO_INVALIDO = "Plano invalido.";
     public static final String PLANO_SEM_MENSALIDADE = "Plano nao possui mensalidade.";
-    public static final String PLANO_JA_EXISTE = "Plano ja existe.";
-    public static final String NOME_PLANO_NULO = "Nome do plano nao pode ser nulo.";
     public static final String MENSALIDADE_NULA = "Mensalidade nao pode ser nula.";
     public static final String MENSALIDADE_NUMERICA = "Mensalidade deve ser numerica.";
     public static final String MENSALIDADE_NEGATIVA = "Mensalidade deve ser nao-negativa.";
-    public static final String FRANQUIA_NULA = "Franquia nao pode ser nula.";
-    public static final String FRANQUIA_NUMERICA = "Franquia deve ser numerica.";
-    public static final String FRANQUIA_NEGATIVA = "Franquia deve ser nao-negativa.";
-    public static final String EXCEDENTE_NULO = "Valor do minuto excedente nao pode ser nulo.";
-    public static final String EXCEDENTE_NUMERICO = "Valor do minuto excedente deve ser numerico.";
-    public static final String EXCEDENTE_NEGATIVO = "Valor do minuto excedente deve ser nao-negativo.";
 
     // ---- pagamento ----
     public static final String USUARIO_NAO_USA_CARTAO = "Usuario nao usa cartao.";
@@ -57,10 +49,6 @@ public final class Mensagens {
     public static final String VALOR_NULO = "Valor nao pode ser nulo.";
     public static final String VALOR_NUMERICO = "Valor deve ser numerico.";
     public static final String VALOR_POSITIVO = "Valor deve ser positivo.";
-
-    // ---- penalidade ----
-    public static final String TIPO_PENALIDADE_INVALIDO = "Tipo de penalidade invalido.";
-    public static final String MOTIVO_NULO = "Motivo nao pode ser nulo.";
 
     // ---- estacao ----
     public static final String ID_ESTACAO_NULO = "Identificacao da estacao nao pode ser nula.";
@@ -83,10 +71,6 @@ public final class Mensagens {
     public static final String BATERIA_INSUFICIENTE = "Nivel de bateria insuficiente.";
     public static final String BICICLETA_NAO_NESTA_ESTACAO = "Bicicleta nao esta nesta estacao.";
     public static final String BICICLETA_INDISPONIVEL = "Bicicleta nao esta disponivel.";
-    public static final String BICICLETA_JA_EM_MANUTENCAO = "Bicicleta ja esta em manutencao.";
-    public static final String BICICLETA_NAO_EM_MANUTENCAO = "Bicicleta nao esta em manutencao.";
-    public static final String DEFEITO_EM_BICICLETA_EM_USO = "Nao e possivel lancar defeito em bicicleta em uso.";
-    public static final String DESCRICAO_NULA = "Descricao nao pode ser nula.";
 
     // ---- aluguel ----
     public static final String ID_ALUGUEL_NULO = "Identificacao do aluguel nao pode ser nula.";
@@ -96,11 +80,13 @@ public final class Mensagens {
     public static final String DEVOLUCAO_ANTERIOR_A_RETIRADA = "Data de devolucao anterior a data de retirada.";
     public static final String DATA_NULA = "Data nao pode ser nula.";
     public static final String DATA_INVALIDA = "Data invalida.";
-    public static final String DATA_FINAL_ANTERIOR = "Data final anterior a data inicial.";
 
-    // ---- historico / persistencia ----
-    public static final String NADA_A_DESFAZER = "Nao ha comando a desfazer.";
-    public static final String NADA_A_REFAZER = "Nao ha comando a refazer.";
+    // ---- persistencia / configuracao ----
     public static final String FALHA_AO_GRAVAR = "Nao foi possivel gravar os dados do sistema.";
     public static final String FALHA_AO_LER = "Nao foi possivel ler os dados do sistema.";
+    public static final String CONFIGURACAO_ILEGIVEL = "Nao foi possivel ler o arquivo de configuracao.";
+
+    public static String parametroInvalido(String chave) {
+        return "Parametro de configuracao invalido: " + chave + ".";
+    }
 }

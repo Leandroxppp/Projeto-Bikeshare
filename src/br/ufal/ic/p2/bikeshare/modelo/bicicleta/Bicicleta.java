@@ -43,9 +43,9 @@ public abstract class Bicicleta implements Identificavel, Serializable {
 
     // ---------------------------------------------------------------- transições
 
-    /** Recusa a retirada se a bicicleta não estiver no estado disponível (ex.: em manutenção). */
+    /** Recusa retirada ou remoção se a bicicleta não estiver disponível (em uso ou em manutenção). */
     public final void exigirDisponivel() {
-        estado.aoRetirar();
+        estado.exigirDisponivel();
     }
 
     public final void retirar() {
@@ -58,18 +58,6 @@ public abstract class Bicicleta implements Identificavel, Serializable {
 
     public final void devolverComExpiracao() {
         estado = estado.aoDevolverComExpiracao();
-    }
-
-    public final void lancarDefeito() {
-        estado = estado.aoLancarDefeito();
-    }
-
-    public final void concluirManutencao() {
-        estado = estado.aoConcluirManutencao();
-    }
-
-    public final void exigirRemovivel() {
-        estado.exigirRemovivel();
     }
 
     /** Disponível no estado e com bateria suficiente: é o que conta nos relatórios de disponibilidade. */

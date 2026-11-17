@@ -40,15 +40,6 @@ public final class Entrada {
         }
     }
 
-    /** Inteiro maior ou igual a zero. */
-    public static int inteiroNaoNegativo(String valor, String nulo, String naoNumerico, String negativo) {
-        int numero = inteiro(valor, nulo, naoNumerico);
-        if (numero < 0) {
-            throw new DadoInvalidoException(negativo);
-        }
-        return numero;
-    }
-
     /** Decimal maior ou igual a zero. */
     public static BigDecimal decimalNaoNegativo(String valor, String nulo, String naoNumerico, String negativo) {
         BigDecimal numero = decimal(valor, nulo, naoNumerico);

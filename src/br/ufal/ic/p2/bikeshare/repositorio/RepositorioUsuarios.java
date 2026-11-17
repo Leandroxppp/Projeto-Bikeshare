@@ -5,17 +5,11 @@ import br.ufal.ic.p2.bikeshare.excecoes.EntidadeNaoExisteException;
 import br.ufal.ic.p2.bikeshare.excecoes.Mensagens;
 import br.ufal.ic.p2.bikeshare.modelo.usuario.Usuario;
 
-public final class RepositorioUsuarios extends Repositorio<Usuario> {
+public final class RepositorioUsuarios extends RepositorioComSequencia<Usuario> {
     private static final long serialVersionUID = 1L;
 
-    private final GeradorIds ids = new GeradorIds("U");
-
     public RepositorioUsuarios() {
-        super(Mensagens.ID_USUARIO_NULO, Mensagens.USUARIO_NAO_EXISTE);
-    }
-
-    public String proximoId() {
-        return ids.proximo();
+        super("U", Mensagens.ID_USUARIO_NULO, Mensagens.USUARIO_NAO_EXISTE);
     }
 
     @Override

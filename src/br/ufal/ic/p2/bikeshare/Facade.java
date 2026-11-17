@@ -1,50 +1,42 @@
 package br.ufal.ic.p2.bikeshare;
 
 import br.ufal.ic.p2.bikeshare.config.Parametros;
-import br.ufal.ic.p2.bikeshare.historico.GerenciadorHistorico;
 import br.ufal.ic.p2.bikeshare.persistencia.ArquivoXml;
 import br.ufal.ic.p2.bikeshare.repositorio.BaseDados;
 import br.ufal.ic.p2.bikeshare.repositorio.ContextoSistema;
 import br.ufal.ic.p2.bikeshare.servico.ServicoAlugueis;
 import br.ufal.ic.p2.bikeshare.servico.ServicoBicicletas;
 import br.ufal.ic.p2.bikeshare.servico.ServicoEstacoes;
-import br.ufal.ic.p2.bikeshare.servico.ServicoPenalidades;
-import br.ufal.ic.p2.bikeshare.servico.ServicoPlanos;
-import br.ufal.ic.p2.bikeshare.servico.ServicoRelatorios;
 import br.ufal.ic.p2.bikeshare.servico.ServicoUsuarios;
+
+import java.nio.file.Path;
 
 /**
  * Único ponto de entrada da lógica de negócio (BS01). Não decide nada: encaminha cada comando
- * ao serviço responsável. Comandos que alteram o estado passam pelo histórico, que os torna
- * atômicos e desfazíveis; consultas vão direto ao serviço.
+ * ao serviço responsável. As operações do Milestone 2 (US10 a US16) continuam como no stub
+ * original e serão implementadas na próxima etapa.
  */
 public class Facade {
+    private static final String AINDA_NAO_IMPLEMENTADO = "Ainda não implementado.";
     private static final String ARQUIVO_DE_DADOS = "bikeshare_data.xml";
+    private static final String ARQUIVO_DE_CONFIGURACAO = "bikeshare.properties";
 
-    private final Parametros parametros = Parametros.padrao();
+    private final Parametros parametros = Parametros.carregar(Path.of(ARQUIVO_DE_CONFIGURACAO));
     private final ArquivoXml arquivo = new ArquivoXml(ARQUIVO_DE_DADOS);
     private final ContextoSistema contexto;
-    private final GerenciadorHistorico historico;
 
     private final ServicoUsuarios usuarios;
     private final ServicoEstacoes estacoes;
     private final ServicoBicicletas bicicletas;
     private final ServicoAlugueis alugueis;
-    private final ServicoPlanos planos;
-    private final ServicoPenalidades penalidades;
-    private final ServicoRelatorios relatorios;
 
     public Facade() {
         BaseDados inicial = arquivo.carregar().orElseGet(() -> new BaseDados(parametros));
         this.contexto = new ContextoSistema(parametros, inicial);
-        this.historico = new GerenciadorHistorico(contexto);
         this.usuarios = new ServicoUsuarios(contexto);
         this.estacoes = new ServicoEstacoes(contexto);
         this.bicicletas = new ServicoBicicletas(contexto);
         this.alugueis = new ServicoAlugueis(contexto);
-        this.planos = new ServicoPlanos(contexto);
-        this.penalidades = new ServicoPenalidades(contexto);
-        this.relatorios = new ServicoRelatorios(contexto);
     }
 
     // =====================================================================
@@ -52,24 +44,21 @@ public class Facade {
     // =====================================================================
 
     public String criarUsuario(String nome, String email, String senha, String tipo, String cpfOuCnpj) {
-        return historico.executar(() -> usuarios.criarPessoaFisica(nome, email, senha, tipo, cpfOuCnpj, null, null));
+        return usuarios.criarPessoaFisica(nome, email, senha, tipo, cpfOuCnpj, null, null);
     }
 
     public String criarUsuario(String nome, String email, String senha, String tipo, String cnpj, String razaoSocial) {
-        return historico.executar(() ->
-                usuarios.criarPessoaJuridica(nome, email, senha, tipo, cnpj, razaoSocial, null, null));
+        return usuarios.criarPessoaJuridica(nome, email, senha, tipo, cnpj, razaoSocial, null, null);
     }
 
     public String criarUsuario(String nome, String email, String senha, String tipo, String cpf,
                                String plano, String mensalidade) {
-        return historico.executar(() ->
-                usuarios.criarPessoaFisica(nome, email, senha, tipo, cpf, plano, mensalidade));
+        return usuarios.criarPessoaFisica(nome, email, senha, tipo, cpf, plano, mensalidade);
     }
 
     public String criarUsuario(String nome, String email, String senha, String tipo, String cnpj,
                                String razaoSocial, String plano, String mensalidade) {
-        return historico.executar(() ->
-                usuarios.criarPessoaJuridica(nome, email, senha, tipo, cnpj, razaoSocial, plano, mensalidade));
+        return usuarios.criarPessoaJuridica(nome, email, senha, tipo, cnpj, razaoSocial, plano, mensalidade);
     }
 
     // =====================================================================
@@ -89,15 +78,15 @@ public class Facade {
     // =====================================================================
 
     public void alterarUsuario(String usuario, String atributo, String valor) {
-        historico.executar(() -> usuarios.alterar(usuario, atributo, valor));
+        usuarios.alterar(usuario, atributo, valor);
     }
 
     public void alterarUsuario(String usuario, String atributo, String valor1, String chave) {
-        historico.executar(() -> usuarios.alterarMetodoPagamento(usuario, atributo, valor1, chave));
+        usuarios.alterarMetodoPagamento(usuario, atributo, valor1, chave);
     }
 
     public void alterarUsuario(String usuario, String atributo, String valor1, String numero, String validade) {
-        historico.executar(() -> usuarios.alterarMetodoPagamento(usuario, atributo, valor1, numero, validade));
+        usuarios.alterarMetodoPagamento(usuario, atributo, valor1, numero, validade);
     }
 
     // =====================================================================
@@ -105,7 +94,7 @@ public class Facade {
     // =====================================================================
 
     public void removerUsuario(String usuario) {
-        historico.executar(() -> usuarios.remover(usuario));
+        usuarios.remover(usuario);
     }
 
     // =====================================================================
@@ -113,7 +102,7 @@ public class Facade {
     // =====================================================================
 
     public String criarEstacao(String nome, String endereco, String capacidade) {
-        return historico.executar(() -> estacoes.criar(nome, endereco, capacidade));
+        return estacoes.criar(nome, endereco, capacidade);
     }
 
     // =====================================================================
@@ -121,15 +110,15 @@ public class Facade {
     // =====================================================================
 
     public void adicionarBicicleta(String estacao, String bicicleta, String tipo) {
-        historico.executar(() -> bicicletas.adicionar(estacao, bicicleta, tipo, null));
+        bicicletas.adicionar(estacao, bicicleta, tipo, null);
     }
 
     public void adicionarBicicleta(String estacao, String bicicleta, String tipo, String nivelBateria) {
-        historico.executar(() -> bicicletas.adicionar(estacao, bicicleta, tipo, nivelBateria));
+        bicicletas.adicionar(estacao, bicicleta, tipo, nivelBateria);
     }
 
     public void removerBicicleta(String estacao, String bicicleta) {
-        historico.executar(() -> bicicletas.remover(estacao, bicicleta));
+        bicicletas.remover(estacao, bicicleta);
     }
 
     public String getAtributoBicicleta(String bicicleta, String atributo) {
@@ -157,7 +146,7 @@ public class Facade {
     // =====================================================================
 
     public String retirarBicicleta(String usuario, String estacao, String bicicleta, String data) {
-        return historico.executar(() -> alugueis.retirar(usuario, estacao, bicicleta, data));
+        return alugueis.retirar(usuario, estacao, bicicleta, data);
     }
 
     // =====================================================================
@@ -165,7 +154,7 @@ public class Facade {
     // =====================================================================
 
     public void devolverBicicleta(String aluguel, String estacao, String data) {
-        historico.executar(() -> alugueis.devolver(aluguel, estacao, data));
+        alugueis.devolver(aluguel, estacao, data);
     }
 
     // =====================================================================
@@ -173,13 +162,14 @@ public class Facade {
     // =====================================================================
 
     public String getHistoricoAlugueis(String usuario) {
-        return alugueis.historico(usuario, null);
+        throw new UnsupportedOperationException(AINDA_NAO_IMPLEMENTADO);
     }
 
     public String getHistoricoAlugueis(String usuario, String atributo) {
-        return alugueis.historico(usuario, atributo);
+        throw new UnsupportedOperationException(AINDA_NAO_IMPLEMENTADO);
     }
 
+    /** Já necessário no Milestone 1: os testes da US8 e da US9 consultam o aluguel. */
     public String getAtributoAluguel(String aluguel, String atributo) {
         return alugueis.consultar(aluguel, atributo);
     }
@@ -189,7 +179,7 @@ public class Facade {
     // =====================================================================
 
     public String criarPlano(String nome, String franquiaMinutos, String valorMinutoExcedente, String mensalidade) {
-        return historico.executar(() -> planos.criar(nome, franquiaMinutos, valorMinutoExcedente, mensalidade));
+        throw new UnsupportedOperationException(AINDA_NAO_IMPLEMENTADO);
     }
 
     // =====================================================================
@@ -197,7 +187,7 @@ public class Facade {
     // =====================================================================
 
     public void lancaPenalidade(String usuario, String tipo, String valor, String motivo) {
-        historico.executar(() -> penalidades.lancar(usuario, tipo, valor, motivo));
+        throw new UnsupportedOperationException(AINDA_NAO_IMPLEMENTADO);
     }
 
     // =====================================================================
@@ -205,11 +195,11 @@ public class Facade {
     // =====================================================================
 
     public void lancaDefeito(String bicicleta, String descricao) {
-        historico.executar(() -> bicicletas.lancarDefeito(bicicleta, descricao));
+        throw new UnsupportedOperationException(AINDA_NAO_IMPLEMENTADO);
     }
 
     public void concluiManutencao(String bicicleta) {
-        historico.executar(() -> bicicletas.concluirManutencao(bicicleta));
+        throw new UnsupportedOperationException(AINDA_NAO_IMPLEMENTADO);
     }
 
     // =====================================================================
@@ -217,7 +207,7 @@ public class Facade {
     // =====================================================================
 
     public String getTotalFaturado(String dataInicial, String dataFinal) {
-        return relatorios.totalFaturado(dataInicial, dataFinal);
+        throw new UnsupportedOperationException(AINDA_NAO_IMPLEMENTADO);
     }
 
     // =====================================================================
@@ -225,11 +215,11 @@ public class Facade {
     // =====================================================================
 
     public void undo() {
-        historico.desfazer();
+        throw new UnsupportedOperationException(AINDA_NAO_IMPLEMENTADO);
     }
 
     public void redo() {
-        historico.refazer();
+        throw new UnsupportedOperationException(AINDA_NAO_IMPLEMENTADO);
     }
 
     // =====================================================================
@@ -237,7 +227,7 @@ public class Facade {
     // =====================================================================
 
     public void zerarSistema() {
-        historico.executar(() -> contexto.substituirBase(new BaseDados(parametros)));
+        contexto.substituirBase(new BaseDados(parametros));
     }
 
     public void encerrarSistema() {
