@@ -55,9 +55,9 @@ Está fora do escopo: qualquer interface gráfica ou web, integração com um ga
 | Milestone | User Stories | Situação |
 |---|---|---|
 | 1 | US1 a US9 (usuários, estações, bicicletas, aluguel, tarifa, pagamento, persistência) | Implementado e testado |
-| 2 | US10 a US16 (histórico, criação de planos, penalidades, manutenção, faturamento, undo/redo) | Pendente: os métodos correspondentes da `Facade` ainda lançam `UnsupportedOperationException` |
+| 2 | US10 a US16 (histórico, criação de planos, penalidades, manutenção, faturamento, undo/redo) | Ainda não implementado, exceto a US11 (planos e tarifação), que já passa com o código atual. Os demais métodos da `Facade` seguem como stubs com `UnsupportedOperationException` |
 
-Por isso, rodar US10 a US16 hoje **falha de propósito**. Isso é esperado nesta entrega.
+Por isso, os testes da US10 e das US12 a US16 ainda não passam. Isso é esperado nesta entrega, pois pertencem ao Milestone 2.
 
 ---
 
@@ -155,7 +155,7 @@ java -cp "out;lib/easyaccept.jar" easyaccept.EasyAccept br.ufal.ic.p2.bikeshare.
 
 ### Rodando pela IDE
 
-A classe `src/Main.java` chama o EasyAccept para todos os arquivos `tests/us*.txt`, em uma única JVM. Nesta entrega, as US10 a US16 aparecem como falha, por serem do Milestone 2. Para validar o Milestone 1, prefira o script.
+A classe `src/Main.java` chama o EasyAccept para todos os arquivos `tests/us*.txt`, em uma única JVM. Nesta entrega, a US10 e as US12 a US16 aparecem como erro, por serem do Milestone 2 (a US11 passa). Para validar o Milestone 1, prefira o script.
 
 ### Problemas comuns
 
